@@ -29,18 +29,6 @@ The EVE-NG network diagram shown above illustrates the detailed implementation o
 
 ---
 
-## Lab Environment
-
-| Component | Platform |
-|---|---|
-| Network Emulator | EVE-NG |
-| Switch OS | Cisco Nexus 9000v |
-| Routing Protocol | OSPF |
-| Control Plane | BGP EVPN |
-| Overlay Technology | VXLAN |
-
----
-
 ## IP Scheme
 
 ### DC1 Configuration
