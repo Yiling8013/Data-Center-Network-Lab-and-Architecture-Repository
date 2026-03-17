@@ -1,0 +1,85 @@
+# Interface and Routing Configuration
+!
+interface loopback0
+ description EVPN_ID
+ ip address 2.2.2.2/32
+ ip router ospf 1 area 0
+!
+interface E1/1
+ description To_DC2-Leaf1
+ no switchport
+ ip address 20.1.21.1/30
+ no shut
+ ip router ospf 1 area 0
+!
+interface E1/2
+ description To_DC2-Leaf2
+ no switchport
+ ip address 20.1.22.1/30
+ no shut
+ ip router ospf 1 area 0
+!
+interface E1/3
+ description To_DC2-Leaf3
+ no switchport
+ ip address 20.1.23.1/30
+ no shut
+ ip router ospf 1 area 0
+!
+interface E1/4
+ description To_DC2-Leaf4
+ no switchport
+ ip address 20.1.24.1/30
+ no shut
+ ip router ospf 1 area 0
+!
+feature ospf
+!
+router ospf 1
+ router-id 2.2.2.2
+!
+# EVPN Configuration
+!
+nv overlay evpn
+!
+feature bgp
+!
+router bgp 64513
+ neighbor 2.2.2.1
+   remote-as 64513
+   update-source loopback0
+   address-family l2vpn evpn
+     send-community
+     send-community extended
+     
+ neighbor 2.2.2.11
+   remote-as 64513
+   update-source loopback0
+   address-family l2vpn evpn
+     send-community
+     send-community extended
+     route-reflector-client
+
+neighbor 2.2.2.12
+   remote-as 64513
+   update-source loopback0
+   address-family l2vpn evpn
+     send-community
+     send-community extended
+     route-reflector-client
+
+neighbor 2.2.2.13
+   remote-as 64513
+   update-source loopback0
+   address-family l2vpn evpn
+     send-community
+     send-community extended
+     route-reflector-client
+
+neighbor 2.2.2.14
+   remote-as 64513
+   update-source loopback0
+   address-family l2vpn evpn
+     send-community
+     send-community extended
+     route-reflector-client

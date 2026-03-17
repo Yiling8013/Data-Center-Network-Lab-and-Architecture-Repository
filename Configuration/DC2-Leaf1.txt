@@ -1,0 +1,183 @@
+# Interface and Routing Configuration
+!
+interface loopback0
+ description EVPN_ID
+ ip address 2.2.2.11/32
+ ip router ospf 1 area 0
+!
+interface E1/1
+ description To_DC2-Spine1
+ no switchport
+ ip address 20.1.11.2/30
+ no shut
+ ip router ospf 1 area 0
+!
+interface E1/2
+ description To_DC2-Spine2
+ no switchport
+ ip address 20.1.21.2/30
+ no shut
+ ip router ospf 1 area 0
+!
+feature ospf
+!
+router ospf 1
+ router-id 2.2.2.11
+!
+# EVPN Configuration
+!
+nv overlay evpn
+!
+feature bgp
+!
+router bgp 64513
+ neighbor 2.2.2.1
+  remote-as 64513
+  update-source loopback0
+  address-family l2vpn evpn
+   send-community
+   send-community extended
+!
+ neighbor 2.2.2.2
+  remote-as 64513
+  update-source loopback0
+  address-family l2vpn evpn
+   send-community
+   send-community extended
+!
+
+# Configure Anycast / Distributed Gateway
+!
+fabric forwarding anycast-gateway-mac 0000.2222.3333
+!
+# Configure VLAN-VNI Mapping
+!
+feature vn-segment-vlan-base 
+!
+vlan 100
+ name T1-L2VNI1
+ vn-segment 10100
+!
+vlan 110
+ name T1-L2VNI2
+ vn-segment 10110
+!
+vlan 111
+ name T1-L3VNI
+ vn-segment 11111
+!
+vlan 200
+ name T2-L2VNI1
+ vn-segment 10200
+!
+vlan 210
+ name T2-L2VNI2
+ vn-segment 10210
+!
+vlan 222
+ name T2-L3VNI
+ vn-segment 22222
+!
+# Adjust TCAM ARP Capacity
+!
+hardware access-list tcam region vpc-convergence 0
+hardware access-list tcam region arp-ether 256
+!
+# Configure Tenant VRF
+!
+vrf context Tenant1
+ vni 11111
+ rd auto
+ address-family ipv4 unicast
+  route-target both auto
+  route-target both auto evpn
+!
+vrf context Tenant2
+ vni 22222
+ rd auto
+ address-family ipv4 unicast
+  route-target both auto
+  route-target both auto evpn
+!
+# Configure SVI
+!
+feature interface-vlan
+!
+interface vlan 111
+  no shut
+  vrf member Tenant1
+  ip forward
+  no ip redirects
+!
+interface vlan 100
+  no shut
+  vrf member Tenant1
+  ip address 192.168.100.254/24
+  fabric forwarding mode anycast-gateway 
+ !
+interface vlan 110
+ no shut
+ vrf member Tenant1
+ ip address 192.168.110.254/24
+ fabric forwarding mode anycast-gateway
+!
+interface vlan 222
+ no shut
+ vrf member Tenant2
+ ip forward
+ no ip redirects
+!
+interface vlan 200
+ no shut
+ vrf member Tenant2
+ ip address 192.168.200.254/24
+ fabric forwarding mode anycast-gateway
+!
+interface vlan 210
+ no shut
+ vrf member Tenant2
+ ip address 192.168.210.254/24
+ fabric forwarding mode anycast-gateway
+!
+# Configure NVE Interface
+!
+feature nv overlay  
+!
+interface nve1
+  no shutdown
+  host-reachability protocol bgp
+  source-interface loopback0
+  member vni 10100
+    suppress-arp
+    ingress-replication protocol bgp
+  member vni 10110
+    suppress-arp
+    ingress-replication protocol bgp
+  member vni 10200
+    suppress-arp
+    ingress-replication protocol bgp
+  member vni 10210
+    suppress-arp
+    ingress-replication protocol bgp
+  member vni 11111 associate-vrf
+  member vni 22222 associate-vrf
+!
+# Configure EVPN Service Instance
+!
+evpn
+ vni 10100 l2
+  rd auto
+  route-target both auto
+
+ vni 10110 l2
+  rd auto
+  route-target both auto
+
+ vni 10200 l2
+  rd auto
+  route-target both auto
+
+ vni 10210 l2
+  rd auto
+  route-target both auto
+!

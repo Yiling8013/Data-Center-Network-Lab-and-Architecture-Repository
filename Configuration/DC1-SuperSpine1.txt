@@ -1,0 +1,61 @@
+interface E1/1
+  des DC1-BGW
+  no switchport
+  ip address 13.1.1.2/30
+  no shut
+!
+interface E1/2
+  des DC2-BGW
+  no switchport
+  ip address 23.1.1.2/30
+  no shut
+!
+interface loopback0
+  ip address 3.3.3.3/32 tag 1234
+!
+route-map Retain-next-hop permit 10        
+  set ip next-hop unchanged
+!
+route-map Redistribute-to-BGP permit 10
+  match tag 1234
+!
+nv overlay evpn
+!
+feature bgp
+!
+router bgp 33333
+
+  router-id 3.3.3.3
+  
+  address-family ipv4 unicast  
+    redistribute direct route-map Redistribute-to-BGP
+   
+  address-family l2vpn evpn
+    retain route-target all
+
+  neighbor 13.1.1.1
+   remote-as 64512
+   address-family ipv4 unicast  
+  
+  neighbor 23.1.1.1
+   remote-as 64513
+   address-family ipv4 unicast  
+  
+  neighbor 1.1.1.14
+    remote-as 64512
+update-source loopback0
+ebgp-multihop 5
+address-family l2vpn evpn
+    send-community both
+    route-map Retain-next-hop out
+    rewrite-evpn-rt-asn
+    
+    neighbor 2.2.2.14
+  remote-as 64513
+  update-source loopback0
+  ebgp-multihop 5
+  address-family l2vpn evpn
+      send-community both
+      route-map Retain-next-hop out
+      rewrite-evpn-rt-asn
+!

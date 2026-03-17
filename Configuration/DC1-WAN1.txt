@@ -1,0 +1,17 @@
+interface G1
+  ip address 128.61.0.2 255.255.255.252
+  ip ospf 1 area 0
+  ip ospf network point-to-point
+
+!
+interface G2
+  ip address 128.62.0.2 255.255.255.252
+  ip ospf 1 area 0
+  ip ospf network point-to-point
+!
+router ospf 1
+  router-id 1.1.1.99
+  default-information originate
+!
+ip route 0.0.0.0 0.0.0.0 128.62.0.1
+!
